@@ -27,7 +27,7 @@ public class ConfigFileLoader {
 		return directory;
 	}
 	
-    // Your AWS credentials are stored in the AwsCredentials.properties file within the project.
+    // Your AWS credentials are stored in the AwsCredentials.properties file accessible via classpath
 	public PropertiesCredentials getAWSCredentails() {
         PropertiesCredentials credentials;
 		try {

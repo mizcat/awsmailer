@@ -1,0 +1,226 @@
+<project name="awsmailer" default="getlibs" basedir=".">
+	<!-- set this to pre-n for pre-release and rel-n for release: -->
+	<property name="release.version" value="rel-1"/>
+	
+	<property name="repo.url.base" value="http://repo.kqed.org" />
+	
+	<!-- set the following to "[host]:[path]" -->
+	<property name="deploy.to.hostpath" value="sagittarius.kqed.org:/var/www/repo/libs/internal"/>
+	
+	<property name="src.dir" value="src"/>
+	<property name="lib.dir" value="root/WEB-INF/lib"/>
+	<property name="build.dir" value="build"/>
+	<property name="build.classes.dir" value="${build.dir}/classes"/>
+	<property name="build.jar.dir" value="${lib.dir}"/>
+	<property name="build.jar.file" value="${build.jar.dir}/${ant.project.name}-${release.version}.jar"/>
+	<property name="tomcat.lib.dir" value="/opt/tomcat/lib" />
+	<property name="test.email" value="WebAdmin@kqed.org" />
+		
+	<target name="init">
+		<description>Prepare for build tasks</description>
+		<tstamp>
+			<format property="build.tstamp" pattern="yyyyMMdd-kkmmss"/>
+		</tstamp>
+		<property name="build.version" value="${release.version}-${build.tstamp}"/>
+	</target>
+	
+	<target name="getlibs-3rdparty">
+		<mkdir dir="${lib.dir}"/>		
+		<get src="${repo.url.base}/libs/3rdparty/aws-java-sdk-1.4.1.jar" dest="${lib.dir}/aws-java-sdk-1.4.1.jar" usetimestamp="true" />
+		<get src="${repo.url.base}/libs/3rdparty/log4j-1.2.17.jar" dest="${lib.dir}/log4j-1.2.11.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/commons-logging-1.1.1.jar" dest="${lib.dir}/commons-logging-1.1.1.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/commons-codec-1.6.jar" dest="${lib.dir}/commons-codec-1.6.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/httpcore-4.2.4.jar" dest="${lib.dir}/httpcore-4.2.4.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/httpclient-4.2.5.jar" dest="${lib.dir}/httpclient-4.2.5.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/compiler-0.8.11.jar" dest="${lib.dir}/compiler-0.8.11.jar" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/3rdparty/guava-12.0.jar" dest="${lib.dir}/guava-12.0.jar" usetimestamp="true"/>
+
+			
+	</target>
+	
+	<target name="getlib-dbdriver">
+		<get src="${repo.url.base}/libs/3rdparty/mysql-connector-java-5.1.5-bin.jar" dest="${lib.dir}/mysql-connector-java-5.1.5-bin.jar" usetimestamp="true" />
+	</target>
+
+	<property name="kqedutil.jar.filename" value="kqedutil-rel-3.jar"/>
+	<property name="bingo.jar.filename" value="bingo-rel-10.jar"/>
+	<property name="simplecms.jar.filename" value="simplecms-rel-8.jar"/>
+	
+	<target name="getlib-local-kqedutil"
+		description="get local copy of kqedutil jar; requires 'kqedutil.dir' property to be set.">
+		<!-- make sure it's built in remote project: -->
+		<echo>Running ant subtask to build kqedutil</echo>
+		<ant antfile="${kqedutil.dir}/build.xml" dir="${kqedutil.dir}" target="build" inheritAll="true"/>
+		<echo>Done running ant subtask to build kqedutil</echo>
+		<copy file="${kqedutil.dir}/build/jar/${kqedutil.jar.filename}" todir="${lib.dir}" overwrite="true"/>
+	</target>
+	
+	<target name="getlib-local-bingo"
+		description="get local copy of bingo jar; requires 'bingo.dir' property to be set.">
+		<echo>Running ant subtask to build bingo</echo>
+		<ant antfile="${bingo.dir}/build.xml" dir="${bingo.dir}" target="build" inheritAll="true"/>
+		<echo>Done running ant subtask to build bingo</echo>
+		<copy file="${bingo.dir}/src/root/WEB-INF/lib/${bingo.jar.filename}" todir="${lib.dir}" overwrite="true"/>
+	</target>	
+
+
+	<target name="getlibs-local" 
+		description="get local copies of all 'internal' jars"
+		depends="getlib-local-kqedutil"/>	
+
+	<target name="getlibs-internal">
+		<mkdir dir="${lib.dir}"/>
+		<get src="${repo.url.base}/libs/internal/${kqedutil.jar.filename}" dest="${lib.dir}/${kqedutil.jar.filename}" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/internal/${simplecms.jar.filename}" dest="${lib.dir}/${simplecms.jar.filename}" usetimestamp="true"/>
+		<get src="${repo.url.base}/libs/internal/${bingo.jar.filename}" dest="${lib.dir}/${bingo.jar.filename}" usetimestamp="true"/>		
+	</target>
+	
+	<target name="getlib-webapp">
+		<mkdir dir="${lib.dir}"/>
+		<get src="${repo.url.base}/libs/internal/${ant.project.name}-${release.version}.jar" 
+			 dest="${lib.dir}/${ant.project.name}-${release.version}.jar" usetimestamp="true"/>
+	</target>
+		
+	<target name="getlibs-compile" depends="getlibs-3rdparty,getlibs-internal"
+		description="get libraries required to compile this project"/>
+
+	<target name="getlibs-run" depends="getlibs-compile"
+		description="get libraries required to run this project as a web app"/>	
+	
+	<target name="getlibs" depends="getlibs-run" 
+		description="alias for getlibs-run; get libraries required to run this project as a web app"/>
+	
+	<target name="test-for-required-props" unless="tomcat.lib.dir">
+		<fail message="tomcat.lib.dir property must be set"/>
+	</target>
+	
+	<target name="compile" depends="init,test-for-required-props" > 
+		<description>compile the qmailer library</description>
+		<mkdir dir="${build.classes.dir}"/>
+		<path id="class.path">
+			<pathelement path="${java.class.path}"/>
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar"/>
+				<include name="**/*.zip"/>
+			</fileset>
+			<fileset dir="${tomcat.lib.dir}">
+				<include name="annotations-api.jar"/>
+				<include name="el-api.jar"/>
+				<include name="jasper.jar"/>
+				<include name="jsp-api.jar"/>
+				<include name="servlet-api.jar"/>
+			</fileset>
+		</path>
+		<javac debug="true" destdir="${build.classes.dir}" classpathref="class.path" includeAntRuntime="no">
+			<src path="${src.dir}"/>
+		</javac>
+	</target>
+
+	<target name="copyfiles" depends="init" >
+		<description>copy non-java resources from the src dir to the build dir</description>
+		<mkdir dir="${build.classes.dir}"/>
+	    <copy todir="${build.classes.dir}">
+	      <fileset dir="${src.dir}">
+	        <exclude name="CVS"/>
+	        <exclude name="**/*.java"/>
+	      </fileset>
+	    </copy>
+	</target>
+						
+	<target name="jar" depends="init">
+		<description>jar the qmailer library</description>
+		<mkdir dir="${build.jar.dir}"/>
+		<echo file="current-build.txt">${build.version}</echo>
+		<echo file="${build.classes.dir}/current-build.txt">${build.version}</echo>
+		<jar destfile="${build.jar.file}"
+			basedir="${build.classes.dir}" />
+	</target>
+	
+	<target name="build" depends="compile,copyfiles,jar" description="compile and jar kqedutil library"/>
+
+	<target name="deploy"  description="deploy the jar file somewhere nice.">
+		<input message="username for '${deploy.to.hostpath}':" addproperty="scp.username"/>
+		<input message="password:" addproperty="scp.password"/>
+		<scp trust="yes" file="${build.jar.file}" todir="${scp.username}:${scp.password}@${deploy.to.hostpath}"/>
+	</target>	
+	
+	<target name="deploy-with-keys"  description="deploy the jar file somewhere nice, using ssh keys">
+		<scp trust="yes" file="${build.jar.file}" 
+			todir="${ssh.username}@${deploy.to.hostpath}" 
+			keyfile="${ssh.keyfile}" passphrase="${ssh.passphrase}"
+		/>
+	</target>	
+
+	<target name="check">
+		<condition property="classdir">
+			<available file="${build.classes.dir}" type="dir"/>
+		</condition>
+		<condition property="jardir">
+			<available file="${build.jar.dir}" type="dir"/>
+		</condition>
+		<condition property="libdir">
+			<available file="${lib.dir}" type="dir"/>
+		</condition>
+	</target>
+	
+	<target name="cleanlib"
+		description="clean out lib dir"
+		depends="check" if="libdir">
+		<!-- delete *contents* of libs: -->
+		<delete includeemptydirs="true">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar"/>
+				<include name="**/*.properties"/>
+				<exclude name="**/*.mustache"/>
+			</fileset>
+		</delete>
+	</target>
+			
+	<target name="cleanclasses"
+		description="clean out classes dir"
+		depends="check" if="classdir">
+		<!-- delete *contents* of build/classes: -->
+		<delete includeemptydirs="true">
+			<fileset dir="${build.classes.dir}" includes="**/*"/>
+		</delete>
+	</target>
+	
+	<target name="cleanjars" 
+		description="clean out jar dir"
+		depends="check" if="jardir">
+		<!-- delete *contents* of build/jar: -->
+		<delete includeemptydirs="true">
+			<fileset dir="${build.jar.dir}">
+				<include name="**/*.jar"/>
+				<include name="**/*.properties"/>
+				<exclude name="**/*.mustache"/>
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="clean" depends="cleanlib,cleanclasses,cleanjars" 
+		description="delete compiled libraries, classes and jar"/>
+	
+	<target name="test-sendemail" description="">
+		<java classname="com.kqed.test.TestPledgeEmails">
+			<arg value="-e" />
+			<arg value="${test.email}" />
+			<arg value="-s" />
+			<arg value="-g" />
+			<classpath>
+				<pathelement location="${build.jar.file}"/>
+				<fileset dir="${lib.dir}">
+	                <include name="**/*.jar"/>
+	                <include name="**/*.zip"/>
+	            </fileset>
+	            <fileset dir="${tomcat.lib.dir}">
+	                <include name="annotations-api.jar"/>
+	                <include name="el-api.jar"/>
+	                <include name="jasper.jar"/>
+	                <include name="jsp-api.jar"/>
+	                <include name="servlet-api.jar"/>
+	            </fileset>
+		    </classpath>
+		</java>
+	</target>
+</project>

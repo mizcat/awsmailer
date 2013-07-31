@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="root/WEB-INF/lib/httpclient-4.2.5.jar"/>
 	<classpathentry kind="lib" path="root/WEB-INF/lib/httpcore-4.2.4.jar"/>
 	<classpathentry kind="lib" path="root/WEB-INF/lib/log4j-1.2.11.jar"/>
+	<classpathentry kind="lib" path="root/WEB-INF/lib/mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
