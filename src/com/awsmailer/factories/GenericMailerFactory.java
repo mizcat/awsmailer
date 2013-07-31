@@ -22,7 +22,7 @@ public class GenericMailerFactory {
 	    ConfigFileLoader cfl = new ConfigFileLoader();
         PropertiesCredentials credentials = cfl.getAWSCredentails();
         
-        // Retrieve the AWS Access Key ID and Secret Key from AwsCredentials.properties.
+        /* Retrieve the AWS Access Key ID and Secret Key from AwsCredentials.properties. */
         credentials.getAWSAccessKeyId();
         credentials.getAWSSecretKey();
     
@@ -42,12 +42,12 @@ public class GenericMailerFactory {
         	destination.setBccAddresses(bcc);
         }        	        
         
-        // Create the subject and body of the message.
+        /* Create the subject and body of the message. */
         Content subject = new Content().withData(email.getSubject());
         Content contents = new Content().withData(email.getContents().toString());         
         Body body;
         
-        // specify mime type of email (HTML, plaintext, or if unspecified: both)       
+        /* specify mime type of email (HTML, plaintext, or if unspecified: both) */       
         if("HTML".equalsIgnoreCase(format)) 
         	body = new Body().withHtml(contents);
         else if("TEXT".equalsIgnoreCase(format))
@@ -55,19 +55,19 @@ public class GenericMailerFactory {
         else
         	body = new Body().withHtml(contents).withText(contents);
         
-        // Create a message with the specified subject and body.
+        /* Create a message with the specified subject and body. */
         Message message = new Message().withSubject(subject).withBody(body);
         
-        // Assemble the email.
+        /* Assemble the email. */
         SendEmailRequest request = new SendEmailRequest().withSource(email.getSender().getAddress()).withDestination(destination).withMessage(message);       
         
         try {    
             LOGGER.debug("Attempting to send an email through Amazon SES by using the AWS SDK for Java...");
         
-            // Instantiate an Amazon SES client, which will make the service call with the supplied AWS credentials.
+            /* Instantiate an Amazon SES client, which will make the service call with the supplied AWS credentials. */
             AmazonSimpleEmailServiceClient client = new AmazonSimpleEmailServiceClient(credentials);
        
-            // Send the email
+            /* Send the email */
             LOGGER.debug("Attempting to send email");
             client.sendEmail(request);  
             LOGGER.debug("Email sent!");
@@ -76,9 +76,10 @@ public class GenericMailerFactory {
            LOGGER.error("GenericMailerFactory Error message: " + ex.getMessage());
         }
         return false;
-	} //send
+	} /* send */
 		
 	
+	/* Internal "helper" method to convernt list to string array */
 	private static String[] ListToStringArray(List<InternetAddress> input) {
         // Construct an object to contain the recipient address.
         String[] stringArray = new String[input.size()];
@@ -88,4 +89,4 @@ public class GenericMailerFactory {
         }
         return stringArray;
 	}
-	} /* GenericMailerFactory */
+} /* GenericMailerFactory */
