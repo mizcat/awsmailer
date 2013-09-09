@@ -22,16 +22,9 @@ import java.util.Set;
 
 public class Transformer {
 	
-	private static DecimalFormat fmtObj = new DecimalFormat("####0.00");
-	private static DecimalFormat twoDForm = new DecimalFormat("#.##");
-	private static SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy");  
-	
-	
 	public static StringBuffer transform(Email email, String environment) throws IOException {
 		
 		ConfigFileLoader cfl = new ConfigFileLoader();		
-		double decimal1 = 0;				
-
 		Writer writer = null;
 	 
 	    try{
@@ -42,10 +35,8 @@ public class Transformer {
 		    writer = new StringWriter();
 		    MustacheFactory mf = new DefaultMustacheFactory();
 		    
-		    // Open a stream to read the template passed to the action
-		    String appPath = new java.io.File("").getCanonicalPath() + "/root/WEB-INF/lib/views/";
 		    
-		    InputStreamReader reader = new FileReader(appPath + email.getTemplate() + ".mustache");	
+		    InputStreamReader reader = new FileReader(directory + email.getTemplate() + ".mustache");	
 		   
 		    Mustache mustache =  mf.compile(reader, "Transformer");
 		    mustache.execute(writer, scopes);

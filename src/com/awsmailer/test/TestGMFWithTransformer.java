@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.mail.internet.InternetAddress;
 
+import com.awsmailer.config.ConfigFileLoader;
 import com.awsmailer.dataobjects.Email;
 import com.awsmailer.dataobjects.SimpleObject;
 import com.awsmailer.factory.GenericMailerFactory;
@@ -14,9 +15,9 @@ import com.awsmailer.templatizer.Transformer;
 
 public class TestGMFWithTransformer {
 	
-	public final static String ENVIRONMENT = "development";
+	public final static String ENVIRONMENT = ConfigFileLoader.DEVELOPMENT;
 	public static final String TO = "recipient@test.com";
-	public static final String FROM = "sender@test.org"; /* be sure this sender is an approved sender in your aws ses console */
+	public static final String FROM = "sender@test.com"; /* be sure this sender is an approved sender in your aws ses console */
 	private static final String SUBJECT = "Testing AWSMailer: Generic Mailer Factory";
 	private static final String CC_1 = "cc1@test.com";
 	private static final String CC_2 = "cc2@test.com";
