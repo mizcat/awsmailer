@@ -12,6 +12,8 @@ public class Email {
 	private List<InternetAddress> ccRecipients;
 	private String subject;
 	private StringBuffer contents;
+	private String template;
+	private Object contentObject; // used to populate dynamic fields template specified
 	
 	public InternetAddress getSender() {
 		return sender;
@@ -41,8 +43,9 @@ public class Email {
 		this.subject = subject;
 	}
 	public StringBuffer getContents() {
-		return contents;
+			return contents;
 	}
+	
 	public void setContents(StringBuffer contents) {
 		this.contents = contents;
 	}
@@ -54,5 +57,19 @@ public class Email {
 	public void setRecipients(List<InternetAddress> recipients) {
 		this.recipients = recipients;
 	}
+	public String getTemplate() {
+		return template;
+	}
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+	public Object getContentObject() {
+		return contentObject;
+	}
+	public void setContentObject(Object contentObject) {
+		this.contentObject = contentObject;
+	}
+	
+	
 	
 }

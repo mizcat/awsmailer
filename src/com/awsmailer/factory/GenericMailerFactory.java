@@ -1,4 +1,4 @@
-package com.awsmailer.factories;
+package com.awsmailer.factory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +79,7 @@ public class GenericMailerFactory {
 	} /* send */
 		
 	
-	/* Internal "helper" method to convernt list to string array */
+	/* Internal "helper" method to convert list to string array */
 	private static String[] ListToStringArray(List<InternetAddress> input) {
         // Construct an object to contain the recipient address.
         String[] stringArray = new String[input.size()];
